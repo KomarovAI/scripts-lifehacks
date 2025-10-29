@@ -24,12 +24,8 @@ def run_ssh_connection():
     print(f"[{time.strftime('%H:%M:%S')}] Подключаюсь к {SSH_USER}@{SSH_HOST}...")
     
     try:
-        process = subprocess.Popen(
-            SSH_CMD,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE
-        )
+        # Убираем перенаправление потоков для интерактивной сессии
+        process = subprocess.Popen(SSH_CMD)
         return process
     except Exception as e:
         print(f"[{time.strftime('%H:%M:%S')}] Ошибка запуска: {e}")

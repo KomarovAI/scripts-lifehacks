@@ -9,7 +9,11 @@ import os
 SSH_HOST = "31.59.58.96"
 SSH_USER = "root"
 SSH_KEY = f"{os.path.expanduser('~')}/.ssh/openssh_imported.key"
-SSH_CMD = ["hpnssh", "-i", SSH_KEY, f"{SSH_USER}@{SSH_HOST}"]
+SSH_CMD = ["hpnssh", "-i", SSH_KEY, 
+           "-o", "ConnectTimeout=10",
+           "-o", "ServerAliveInterval=30",
+           "-o", "ServerAliveCountMax=3",
+           f"{SSH_USER}@{SSH_HOST}"]
 
 # Параметры переподключения
 RETRY_DELAY = 5  # Ждём 5 секунд перед переподключением

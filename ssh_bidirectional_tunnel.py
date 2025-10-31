@@ -24,6 +24,7 @@ from typing import List, Dict, Optional
 SSH_HOST = "31.59.58.96"
 SSH_USER = "root"
 SSH_KEY = f"{os.path.expanduser('~')}/.ssh/openssh_imported.key"
+SSH_PORT = int(os.getenv("SSH_PORT", "2222"))  # порт по умолчанию 2222
 
 # Параметры переподключения
 RETRY_DELAY = 5
@@ -36,22 +37,20 @@ LOCAL_FORWARDS = [
     "8080:localhost:80",     # Веб-сервер
     "8443:localhost:443",    # HTTPS
     "3306:localhost:3306",   # MySQL
-    "5432:localhost:5432",   # PostgreSQL
-    "6379:localhost:6379",   # Redis
-    "9090:localhost:9090",   # Cockpit panel
-    "2222:localhost:22",     # SSH доступ к ВПС
 ]
 
 # REMOTE_FORWARDS: удаленный_порт:локальный_хост:локальный_порт
 # Пример: 8081:localhost:80 - удаленный порт 8081 перенаправляется на локальный порт 80
 REMOTE_FORWARDS = [
-    "8081:localhost:80",     # Локальный веб-сервер доступен на ВПС через порт 8081
-    "3307:localhost:3306",   # Локальная БД доступна на ВПС
     "2223:localhost:22",     # SSH к локальному компьютеру через ВПС
+    # Примеры, раскомментируйте по необходимости:
+    # "8081:localhost:80",     # Локальный веб-сервер доступен на ВПС через порт 8081
+    # "3307:localhost:3306",   # Локальная БД доступна на ВПС
 ]
 
 # Дополнительные опции SSH
 SSH_OPTIONS = [
+    "-p", str(SSH_PORT),
     "-o", "ConnectTimeout=10",
     "-o", "ServerAliveInterval=30", 
     "-o", "ServerAliveCountMax=3",
@@ -69,7 +68,7 @@ class SSHTunnelManager:
         
     def build_ssh_command(self) -> List[str]:
         """Строит команду SSH с туннелями"""
-        cmd = ["ssh", "-i", SSH_KEY] + SSH_OPTIONS
+        cmd = ["hpnssh", "-i", SSH_KEY] + SSH_OPTIONS
         
         # Добавляем локальные форварды (-L)
         for forward in LOCAL_FORWARDS:
@@ -252,6 +251,7 @@ def show_config():
     print("=== Текущая конфигурация ===")
     print(f"Сервер: {SSH_USER}@{SSH_HOST}")
     print(f"SSH ключ: {SSH_KEY}")
+    print(f"SSH порт: {SSH_PORT}")
     print(f"Задержка переподключения: {RETRY_DELAY}с")
     print(f"Максимальное количество попыток: {MAX_RETRIES if MAX_RETRIES > 0 else 'Бесконечно'}")
     
@@ -280,10 +280,10 @@ def test_local_ports():
         
     # Тестируем подключение к серверу
     print(f"\nПодключение к серверу {SSH_HOST}:")
-    is_reachable = SSHTunnelManager().test_port(SSH_HOST, 22)
+    is_reachable = SSHTunnelManager().test_port(SSH_HOST, SSH_PORT)
     status = "доступен" if is_reachable else "недоступен" 
     icon = "✓" if is_reachable else "✗"
-    print(f"  {icon} SSH порт 22: {status}")
+    print(f"  {icon} SSH порт {SSH_PORT}: {status}")
 
 def main():
     """Главная функция"""
